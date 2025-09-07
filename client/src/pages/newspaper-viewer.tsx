@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation, useSearch } from "wouter";
 import Header from "@/components/header";
@@ -13,10 +14,105 @@ export default function NewspaperViewer() {
   const search = useSearch();
   const newspaperId = params?.newspaperId || "";
   const viewMode = new URLSearchParams(search).get('view') || 'full';
+  
+  // Enhanced viewer state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages] = useState(1); // Will be dynamic when we have multi-page support
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const viewerRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  
+  // Touch/swipe state
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [showSwipeIndicator, setShowSwipeIndicator] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
 
   const { data: newspaper, isLoading, error } = useQuery<Newspaper>({
     queryKey: ["/api/newspapers", newspaperId],
   });
+
+  // Enhanced viewer functionality
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.5, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.5, 0.5));
+  };
+
+  const handleZoomReset = () => {
+    setZoomLevel(1);
+  };
+
+  const handleFullscreen = () => {
+    if (!isFullscreen && viewerRef.current) {
+      viewerRef.current.requestFullscreen?.();
+      setIsFullscreen(true);
+    } else if (document.fullscreenElement) {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  // Touch handlers for swipe gestures
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+    
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStart.x;
+    const deltaY = touch.clientY - touchStart.y;
+    
+    // Only consider horizontal swipes
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      const direction = deltaX > 0 ? 'right' : 'left';
+      setSwipeDirection(direction);
+      setShowSwipeIndicator(true);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (swipeDirection) {
+      if (swipeDirection === 'right' && currentPage > 1) {
+        handlePreviousPage();
+      } else if (swipeDirection === 'left' && currentPage < totalPages) {
+        handleNextPage();
+      }
+    }
+    
+    setTouchStart(null);
+    setSwipeDirection(null);
+    setTimeout(() => setShowSwipeIndicator(false), 300);
+  };
+
+  // Auto-hide controls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isFullscreen) {
+        setShowControls(false);
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [isFullscreen, showControls]);
 
   const handleBack = () => {
     setLocation("/");
@@ -34,10 +130,6 @@ export default function NewspaperViewer() {
     }
   };
 
-  const handleZoom = () => {
-    // Implementation for zoom functionality
-    console.log("Zoom functionality not implemented yet");
-  };
 
   if (isLoading) {
     return (
@@ -92,11 +184,11 @@ export default function NewspaperViewer() {
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={handleZoom}
+              onClick={handleFullscreen}
               className="p-2 rounded-full hover:bg-primary/10"
-              data-testid="button-zoom"
+              data-testid="button-fullscreen"
             >
-              <span className="material-icons">zoom_in</span>
+              <span className="material-icons">{isFullscreen ? 'fullscreen_exit' : 'fullscreen'}</span>
             </Button>
             <Button 
               variant="ghost" 
@@ -145,61 +237,187 @@ export default function NewspaperViewer() {
           </CardContent>
         </Card>
 
-        {/* Newspaper Viewer */}
-        <div className="h-[70vh] pdf-viewer rounded-lg flex items-center justify-center" data-testid="newspaper-viewer-container">
-          <div className="text-center">
-            <span className="material-icons text-6xl text-muted-foreground mb-4">newspaper</span>
-            <p className="text-lg font-medium text-foreground mb-2" data-testid="text-viewer-title">
-              {viewMode === 'summary' ? 'Newspaper Summary' : 'Full Newspaper'}
-            </p>
-            <p className="text-sm text-muted-foreground mb-4" data-testid="text-viewer-subtitle">
-              {newspaper.name} - {formatDisplayDate(newspaper.date)}
-            </p>
-            <div className="space-y-2">
-              <Button 
-                onClick={() => window.open(`/uploads/${newspaper.filePath}`, '_blank')}
-                className="block w-full"
-                data-testid="button-view-full-paper"
+        {/* Enhanced Newspaper Viewer */}
+        <div 
+          ref={viewerRef}
+          className={`newspaper-viewer ${isFullscreen ? 'fixed inset-0 z-50 bg-black' : 'h-[70vh]'} relative`}
+          data-testid="newspaper-viewer-container"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onClick={() => setShowControls(true)}
+        >
+          {viewMode === 'summary' ? (
+            // Summary View
+            <div className="h-full flex items-center justify-center p-4">
+              <div className="summary-card w-full max-w-md fade-in">
+                <div className="text-center mb-6">
+                  <span className="material-icons text-4xl mb-4">summarize</span>
+                  <h3 className="text-xl font-semibold mb-2">Daily Summary</h3>
+                  <p className="text-sm opacity-90">
+                    {newspaper.name} - {formatDisplayDate(newspaper.date)}
+                  </p>
+                </div>
+                
+                {newspaper.status === 'processed' ? (
+                  <div className="space-y-4">
+                    <div className="summary-highlight">
+                      <h4 className="font-medium mb-2">Key Highlights</h4>
+                      <p className="text-sm opacity-90">
+                        Articles have been processed and categorized into UPSC subjects. 
+                        Find detailed summaries in their respective subject folders.
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button 
+                        onClick={() => setLocation('/')}
+                        className="flex-1 bg-white/20 hover:bg-white/30 text-white border border-white/30"
+                        data-testid="button-browse-subjects"
+                      >
+                        Browse Subjects
+                      </Button>
+                      <Button 
+                        onClick={() => setLocation(`/newspaper/${newspaperId}`)}
+                        variant="outline"
+                        className="flex-1 bg-transparent border-white text-white hover:bg-white/10"
+                        data-testid="button-view-full"
+                      >
+                        View Full Paper
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <div className="flex items-center justify-center space-x-2 mb-4">
+                      <span className="material-icons animate-spin">refresh</span>
+                      <span className="text-sm font-medium">Processing...</span>
+                    </div>
+                    <p className="text-xs opacity-75">
+                      Summary will be available once processing is complete
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            // Full Newspaper View
+            <div className="h-full relative">
+              {/* Newspaper Image/PDF Display */}
+              <div className="h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                {newspaper.mimeType.includes('image') ? (
+                  <img
+                    ref={imageRef}
+                    src={`/uploads/${newspaper.filePath.split('/').pop()}`}
+                    alt={`${newspaper.name} - Page ${currentPage}`}
+                    className="newspaper-page max-w-full max-h-full"
+                    style={{ transform: `scale(${zoomLevel})` }}
+                    data-testid="newspaper-image"
+                  />
+                ) : (
+                  <div className="text-center">
+                    <span className="material-icons text-6xl text-muted-foreground mb-4">picture_as_pdf</span>
+                    <p className="text-lg font-medium text-foreground mb-4">PDF Document</p>
+                    <Button 
+                      onClick={() => window.open(`/uploads/${newspaper.filePath.split('/').pop()}`, '_blank')}
+                      data-testid="button-open-pdf"
+                    >
+                      <span className="material-icons mr-2">open_in_new</span>
+                      Open PDF
+                    </Button>
+                  </div>
+                )}
+              </div>
+              
+              {/* Swipe Indicators */}
+              <div className={`swipe-indicator left ${showSwipeIndicator && swipeDirection === 'right' ? 'show' : ''}`}>
+                <span className="material-icons">chevron_left</span>
+              </div>
+              <div className={`swipe-indicator right ${showSwipeIndicator && swipeDirection === 'left' ? 'show' : ''}`}>
+                <span className="material-icons">chevron_right</span>
+              </div>
+              
+              {/* Page Navigation Controls */}
+              {showControls && totalPages > 1 && (
+                <div className="page-navigation fade-in">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                    className="text-white hover:bg-white/20"
+                    data-testid="button-previous-page"
+                  >
+                    <span className="material-icons">chevron_left</span>
+                  </Button>
+                  <span className="text-sm font-medium text-white">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    className="text-white hover:bg-white/20"
+                    data-testid="button-next-page"
+                  >
+                    <span className="material-icons">chevron_right</span>
+                  </Button>
+                </div>
+              )}
+              
+              {/* Zoom Controls */}
+              {showControls && newspaper.mimeType.includes('image') && (
+                <div className="zoom-controls fade-in">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleZoomIn}
+                    disabled={zoomLevel >= 3}
+                    className="text-white hover:bg-white/20"
+                    data-testid="button-zoom-in"
+                  >
+                    <span className="material-icons">zoom_in</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleZoomReset}
+                    className="text-white hover:bg-white/20"
+                    data-testid="button-zoom-reset"
+                  >
+                    <span className="text-xs font-medium">{Math.round(zoomLevel * 100)}%</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleZoomOut}
+                    disabled={zoomLevel <= 0.5}
+                    className="text-white hover:bg-white/20"
+                    data-testid="button-zoom-out"
+                  >
+                    <span className="material-icons">zoom_out</span>
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Toggle Summary/Full View Button */}
+          {showControls && (
+            <div className="absolute top-4 right-4">
+              <Button
+                size="sm"
+                onClick={() => setLocation(`/newspaper/${newspaperId}${viewMode === 'summary' ? '' : '?view=summary'}`)}
+                className="bg-black/50 hover:bg-black/70 text-white border-0"
+                data-testid="button-toggle-view"
               >
-                <span className="material-icons mr-2">open_in_new</span>
-                View Full Paper (PDF)
-              </Button>
-              <Button 
-                variant="secondary" 
-                onClick={() => setLocation(`/newspaper/${newspaperId}?view=summary`)}
-                className="block w-full"
-                disabled={viewMode === 'summary'}
-                data-testid="button-view-summary"
-              >
-                <span className="material-icons mr-2">summarize</span>
-                View Summary Only
+                <span className="material-icons mr-1 text-sm">
+                  {viewMode === 'summary' ? 'article' : 'summarize'}
+                </span>
+                {viewMode === 'summary' ? 'Full' : 'Summary'}
               </Button>
             </div>
-            
-            {viewMode === 'summary' && newspaper.status === 'processed' && (
-              <div className="mt-6 p-4 bg-muted rounded-lg text-left">
-                <h3 className="font-medium mb-2 text-foreground">Summary</h3>
-                <p className="text-sm text-muted-foreground" data-testid="text-newspaper-summary">
-                  This newspaper has been processed and articles have been categorized into UPSC subjects. 
-                  You can find the summarized articles in their respective subject folders on the home page.
-                </p>
-              </div>
-            )}
-
-            {newspaper.status === 'processing' && (
-              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center justify-center space-x-2 text-yellow-700">
-                  <span className="material-icons animate-spin">refresh</span>
-                  <span className="text-sm font-medium" data-testid="text-processing-status">
-                    Processing in progress...
-                  </span>
-                </div>
-                <p className="text-xs text-yellow-600 mt-1 text-center">
-                  The newspaper is being analyzed and categorized. This may take a few minutes.
-                </p>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
         {/* File Details */}

@@ -149,4 +149,153 @@
     -webkit-font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;
   }
+
+  /* Enhanced Newspaper Viewer Styles */
+  .newspaper-viewer {
+    position: relative;
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+    touch-action: pan-x pan-y;
+  }
+
+  .newspaper-page {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+    cursor: grab;
+  }
+
+  .newspaper-page:active {
+    cursor: grabbing;
+  }
+
+  .zoom-controls {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    padding: 8px;
+  }
+
+  .page-navigation {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: white;
+  }
+
+  .swipe-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .swipe-indicator.left {
+    left: 16px;
+  }
+
+  .swipe-indicator.right {
+    right: 16px;
+  }
+
+  .swipe-indicator.show {
+    opacity: 1;
+  }
+
+  /* Summary card enhancements */
+  .summary-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+  }
+
+  .summary-highlight {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 8px 0;
+    border-left: 4px solid #ffd700;
+  }
+
+  /* Enhanced subject folder styling */
+  .subject-card {
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .subject-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    padding: 16px;
+  }
+
+  .calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .calendar-day:hover {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  .calendar-day.has-content {
+    background: var(--accent);
+    color: var(--accent-foreground);
+    font-weight: 500;
+  }
+
+  /* Smooth animations */
+  .fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
 }
