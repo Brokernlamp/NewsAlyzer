@@ -309,25 +309,21 @@ export default function NewspaperViewer() {
                     ref={imageRef}
                     src={newspaper.filePath.startsWith('tg:')
                       ? `/api/tg/file/${newspaper.filePath.slice(3)}`
-                      : `/uploads/${newspaper.filePath.split('/').pop()}`}
+                      : `/uploads/${newspaper.filePath.replace(/^.*[\\\/]/, '')}`}
                     alt={`${newspaper.name} - Page ${currentPage}`}
                     className="newspaper-page max-w-full max-h-full"
                     style={{ transform: `scale(${zoomLevel})` }}
                     data-testid="newspaper-image"
                   />
                 ) : (
-                  <div className="text-center">
-                    <span className="material-icons text-6xl text-muted-foreground mb-4">picture_as_pdf</span>
-                    <p className="text-lg font-medium text-foreground mb-4">PDF Document</p>
-                    <Button 
-                      onClick={() => window.open(newspaper.filePath.startsWith('tg:')
+                  <div className="w-full h-full">
+                    <iframe
+                      src={newspaper.filePath.startsWith('tg:')
                         ? `/api/tg/file/${newspaper.filePath.slice(3)}`
-                        : `/uploads/${newspaper.filePath.split('/').pop()}`, '_blank')}
-                      data-testid="button-open-pdf"
-                    >
-                      <span className="material-icons mr-2">open_in_new</span>
-                      Open PDF
-                    </Button>
+                        : `/uploads/${newspaper.filePath.replace(/^.*[\\\/]/, '')}`}
+                      title="PDF Viewer"
+                      className="w-full h-full rounded-md bg-white"
+                    />
                   </div>
                 )}
               </div>

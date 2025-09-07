@@ -256,8 +256,9 @@ export default function Admin() {
                 {recentUploads.map((upload) => (
                   <div 
                     key={upload.id} 
-                    className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                    className="flex items-center justify-between p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80"
                     data-testid={`upload-${upload.id}`}
+                    onClick={() => setLocation(`/newspaper/${upload.id}`)}
                   >
                     <div className="flex items-center space-x-3">
                       <span className="material-icons text-primary">newspaper</span>

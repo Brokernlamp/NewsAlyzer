@@ -5,6 +5,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { insertNewspaperSchema, insertArticleSchema } from "@shared/schema";
+import { enqueueProcessingJob, getLatestJobStatus } from "./services/processing";
 import type { Request, Response } from "express";
 
 // Configure multer for file uploads
@@ -48,7 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newspaperData = {
         name: req.body.name,
         date: req.body.date,
-        filePath: req.file.path,
+        filePath: path.basename(req.file.path),
         originalFileName: req.file.originalname,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
@@ -56,11 +57,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const validatedData = insertNewspaperSchema.parse(newspaperData);
       const newspaper = await storage.createNewspaper(validatedData);
+      // enqueue background processing (non-blocking)
+      try {
+        enqueueProcessingJob({ newspaperId: newspaper.id, name: newspaper.name, date: newspaper.date, filePath: newspaper.filePath, mimeType: newspaper.mimeType });
+      } catch (e) {
+        console.error("Failed to enqueue processing job:", e);
+      }
       
       res.status(201).json(newspaper);
     } catch (error) {
       console.error("Error uploading newspaper:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Upload failed" });
+    }
+  });
+  // Processing status
+  app.get("/api/processing/status", async (_req, res) => {
+    try {
+      const status = getLatestJobStatus();
+      res.json(status || { status: "idle" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get status" });
     }
   });
 

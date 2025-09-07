@@ -309,7 +309,7 @@ export default function NewspaperViewer() {
                     ref={imageRef}
                     src={newspaper.filePath.startsWith('tg:')
                       ? `/api/tg/file/${newspaper.filePath.slice(3)}`
-                      : `/uploads/${newspaper.filePath.split('/').pop()}`}
+                      : `/uploads/${newspaper.filePath.replace(/^.*[\\\\\/]/, '')}`}
                     alt={`${newspaper.name} - Page ${currentPage}`}
                     className="newspaper-page max-w-full max-h-full"
                     style={{ transform: `scale(${zoomLevel})` }}
@@ -322,7 +322,7 @@ export default function NewspaperViewer() {
                     <Button 
                       onClick={() => window.open(newspaper.filePath.startsWith('tg:')
                         ? `/api/tg/file/${newspaper.filePath.slice(3)}`
-                        : `/uploads/${newspaper.filePath.split('/').pop()}`, '_blank')}
+                        : `/uploads/${newspaper.filePath.replace(/^.*[\\\\\/]/, '')}` , '_blank')}
                       data-testid="button-open-pdf"
                     >
                       <span className="material-icons mr-2">open_in_new</span>
