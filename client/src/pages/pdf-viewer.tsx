@@ -126,7 +126,9 @@ export default function PdfViewer() {
             </p>
             {article.pdfPath ? (
               <Button 
-                onClick={() => window.open(`/uploads/${article.pdfPath}`, '_blank')}
+                onClick={() => window.open(article.pdfPath.startsWith('tg:')
+                  ? `/api/tg/file/${article.pdfPath.slice(3)}`
+                  : `/uploads/${article.pdfPath}`, '_blank')}
                 data-testid="button-open-pdf"
               >
                 <span className="material-icons mr-2">open_in_new</span>

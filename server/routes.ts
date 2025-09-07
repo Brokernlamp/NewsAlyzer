@@ -5,6 +5,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { insertNewspaperSchema, insertArticleSchema } from "@shared/schema";
+import type { Request, Response } from "express";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -60,6 +61,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading newspaper:", error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Upload failed" });
+    }
+  });
+
+  // Alternative JSON route to create a newspaper when file is already uploaded to Telegram
+  app.post("/api/newspapers/json", async (req: Request, res: Response) => {
+    try {
+      const newspaperData = {
+        name: req.body.name,
+        date: req.body.date,
+        filePath: req.body.filePath, // can be a local path or tg:<file_id>
+        originalFileName: req.body.originalFileName,
+        fileSize: req.body.fileSize,
+        mimeType: req.body.mimeType,
+        status: req.body.status || 'uploaded',
+      };
+      const validatedData = insertNewspaperSchema.parse(newspaperData);
+      const newspaper = await storage.createNewspaper(validatedData);
+      res.status(201).json(newspaper);
+    } catch (error) {
+      console.error("Error creating newspaper (JSON):", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Creation failed" });
     }
   });
 
@@ -187,6 +209,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.sendFile(filePath);
     } else {
       res.status(404).json({ message: "File not found" });
+    }
+  });
+
+  // Telegram Bot API integration
+  const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+  const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID; // numeric chat id (negative for channels)
+
+  // Upload a document to Telegram channel via Bot API and return file_id
+  app.post("/api/tg/upload", upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      if (!BOT_TOKEN || !CHANNEL_ID) {
+        return res.status(500).json({ message: "Telegram is not configured (set TELEGRAM_BOT_TOKEN and TELEGRAM_CHANNEL_ID)" });
+      }
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const fileBuffer = await fs.promises.readFile(req.file.path);
+      const fileBlob = new Blob([fileBuffer], { type: req.file.mimetype });
+      const form = new FormData();
+      form.append("chat_id", CHANNEL_ID);
+      form.append("document", fileBlob, req.file.originalname);
+      if (req.body.caption) form.append("caption", req.body.caption);
+
+      const tgRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
+        method: "POST",
+        body: form as any,
+      });
+      const tgJson = await tgRes.json();
+      if (!tgRes.ok || !tgJson.ok) {
+        const msg = tgJson?.description || tgRes.statusText;
+        return res.status(502).json({ message: `Telegram upload failed: ${msg}` });
+      }
+
+      const fileId: string | undefined = tgJson.result?.document?.file_id;
+      return res.json({
+        ok: true,
+        file_id: fileId,
+        original: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+      });
+    } catch (error) {
+      console.error("Error uploading to Telegram:", error);
+      return res.status(500).json({ message: "Failed to upload to Telegram" });
+    }
+  });
+
+  // Proxy a Telegram file_id to a downloadable stream without exposing bot token
+  app.get("/api/tg/file/:fileId", async (req: Request, res: Response) => {
+    try {
+      if (!BOT_TOKEN) {
+        return res.status(500).json({ message: "Telegram is not configured (set TELEGRAM_BOT_TOKEN)" });
+      }
+      const { fileId } = req.params;
+      const getFileRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${encodeURIComponent(fileId)}`);
+      const getFileJson: any = await getFileRes.json();
+      if (!getFileRes.ok || !getFileJson.ok) {
+        const msg = getFileJson?.description || getFileRes.statusText;
+        return res.status(502).json({ message: `Telegram getFile failed: ${msg}` });
+      }
+
+      const filePathTg: string = getFileJson.result.file_path;
+      const downloadUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${filePathTg}`;
+      const streamRes = await fetch(downloadUrl);
+      if (!streamRes.ok) {
+        return res.status(502).json({ message: `Telegram file download failed: ${streamRes.statusText}` });
+      }
+
+      // Pass through content headers
+      const contentType = streamRes.headers.get("content-type");
+      const contentLength = streamRes.headers.get("content-length");
+      if (contentType) res.setHeader("Content-Type", contentType);
+      if (contentLength) res.setHeader("Content-Length", contentLength);
+
+      // Stream the body
+      if (streamRes.body) {
+        const reader = (streamRes.body as any).getReader?.();
+        if (reader) {
+          res.flushHeaders?.();
+          const pump = async () => {
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
+              res.write(Buffer.from(value));
+            }
+            res.end();
+          };
+          pump();
+          return;
+        }
+      }
+
+      const arrayBuf = await streamRes.arrayBuffer();
+      res.end(Buffer.from(arrayBuf));
+    } catch (error) {
+      console.error("Error proxying Telegram file:", error);
+      return res.status(500).json({ message: "Failed to proxy Telegram file" });
     }
   });
 

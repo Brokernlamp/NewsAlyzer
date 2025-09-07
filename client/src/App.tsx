@@ -9,6 +9,8 @@ import Admin from "@/pages/admin";
 import SubjectFolder from "@/pages/subject-folder";
 import PdfViewer from "@/pages/pdf-viewer";
 import NewspaperViewer from "@/pages/newspaper-viewer";
+import Library from "@/pages/library";
+import Settings from "@/pages/settings";
 
 function Router() {
   return (
@@ -18,6 +20,8 @@ function Router() {
       <Route path="/subject/:subjectId" component={SubjectFolder} />
       <Route path="/pdf/:articleId" component={PdfViewer} />
       <Route path="/newspaper/:newspaperId" component={NewspaperViewer} />
+      <Route path="/library" component={Library} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );

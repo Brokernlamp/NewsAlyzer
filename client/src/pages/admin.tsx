@@ -28,12 +28,24 @@ export default function Admin() {
 
   const uploadMutation = useMutation({
     mutationFn: async (data: { file: File; name: string; date: string }) => {
-      const formData = new FormData();
-      formData.append('file', data.file);
-      formData.append('name', data.name);
-      formData.append('date', data.date);
-      
-      const response = await apiRequest("POST", "/api/newspapers", formData);
+      // 1) Upload to Telegram to obtain file_id
+      const tgForm = new FormData();
+      tgForm.append('file', data.file);
+      const tgRes = await fetch('/api/tg/upload', { method: 'POST', body: tgForm as any, credentials: 'include' });
+      if (!tgRes.ok) throw new Error(await tgRes.text());
+      const tgJson = await tgRes.json();
+
+      // 2) Create newspaper record pointing to Telegram file_id
+      const payload = {
+        name: data.name,
+        date: data.date,
+        filePath: `tg:${tgJson.file_id}`,
+        originalFileName: tgJson.original || data.file.name,
+        fileSize: tgJson.size || data.file.size,
+        mimeType: tgJson.mimeType || data.file.type,
+        status: 'uploaded',
+      };
+      const response = await apiRequest("POST", "/api/newspapers/json", payload);
       return response.json();
     },
     onSuccess: () => {

@@ -307,7 +307,9 @@ export default function NewspaperViewer() {
                 {newspaper.mimeType.includes('image') ? (
                   <img
                     ref={imageRef}
-                    src={`/uploads/${newspaper.filePath.split('/').pop()}`}
+                    src={newspaper.filePath.startsWith('tg:')
+                      ? `/api/tg/file/${newspaper.filePath.slice(3)}`
+                      : `/uploads/${newspaper.filePath.split('/').pop()}`}
                     alt={`${newspaper.name} - Page ${currentPage}`}
                     className="newspaper-page max-w-full max-h-full"
                     style={{ transform: `scale(${zoomLevel})` }}
@@ -318,7 +320,9 @@ export default function NewspaperViewer() {
                     <span className="material-icons text-6xl text-muted-foreground mb-4">picture_as_pdf</span>
                     <p className="text-lg font-medium text-foreground mb-4">PDF Document</p>
                     <Button 
-                      onClick={() => window.open(`/uploads/${newspaper.filePath.split('/').pop()}`, '_blank')}
+                      onClick={() => window.open(newspaper.filePath.startsWith('tg:')
+                        ? `/api/tg/file/${newspaper.filePath.slice(3)}`
+                        : `/uploads/${newspaper.filePath.split('/').pop()}`, '_blank')}
                       data-testid="button-open-pdf"
                     >
                       <span className="material-icons mr-2">open_in_new</span>
