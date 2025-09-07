@@ -1,0 +1,99 @@
+Newspaper Display
+Full newspaper view - Display the complete newspaper as uploaded
+
+Page-by-page navigation with smooth swiping
+
+Zoom functionality for comfortable reading of small text
+
+Portrait and landscape modes for flexible reading
+
+Summary Generation
+Auto-generated summaries of the entire newspaper
+
+One-click toggle between full paper and summary view
+
+Quick summary cards showing key highlights
+
+Subject-Wise Organization
+Automatic Classification
+AI categorization into UPSC subjects (Polity, Economy, International Relations, etc.)
+
+Date-wise folders for each subject
+
+PDF generation of daily subject summaries
+
+Clear folder structure (Trade/2025-09-07.pdf format)
+
+Browse Categories
+Subject filter dropdown for easy navigation
+
+Calendar view to access previous dates
+
+Search by date and subject combination
+
+Simple User Interface
+Clean Design
+Minimal, distraction-free interface
+
+Easy navigation between newspapers and subjects
+
+Clear visual hierarchy - newspaper → summary → subjects
+
+Fast loading with lightweight design
+
+Basic User Management
+Simple registration (email or phone number)
+
+User preferences for favorite subjects
+
+Reading progress tracking for each newspaper
+
+Essential Reading Tools
+Offline Access
+Download newspapers for offline reading
+
+Cached summaries available without internet
+
+Storage management to delete old downloads
+
+Basic Bookmarking
+Save important articles for later reference
+
+Quick bookmark toggle while reading
+
+Bookmarks organized by subject
+
+Admin Panel Features
+Content Management
+Upload newspaper files (PDF/Image format)
+
+Preview before publishing to check quality
+
+Schedule publishing for daily uploads
+
+Bulk upload for multiple days
+
+Processing Controls
+Manual editing of auto-generated summaries
+
+Subject classification review before publishing
+
+Quality check for PDF generation
+
+Technical Essentials
+Performance
+Fast text processing for summary generation
+
+Efficient PDF creation for subject folders
+
+Quick search within newspapers
+
+Smooth scrolling and navigation
+
+Compatibility
+Android optimization for various screen sizes
+
+Low storage footprint for budget devices
+
+Works on older Android versions for wider accessibility
+

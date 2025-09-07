@@ -1,0 +1,621 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPSC News Analyzer - Mobile App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                }
+            },
+        }
+    };
+    </script>
+    <style>
+        :root {
+            --background: hsl(210 20% 98%);
+            --foreground: hsl(224 71% 4%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(224 71% 4%);
+            --primary: hsl(207 90% 35%);
+            --primary-foreground: hsl(0 0% 98%);
+            --secondary: hsl(200 95% 60%);
+            --secondary-foreground: hsl(224 71% 4%);
+            --muted: hsl(220 14% 96%);
+            --muted-foreground: hsl(220 8% 46%);
+            --accent: hsl(142 76% 36%);
+            --accent-foreground: hsl(0 0% 98%);
+            --border: hsl(220 13% 91%);
+            --input: hsl(220 13% 91%);
+            --ring: hsl(207 90% 35%);
+            --radius: 8px;
+        }
+        
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .mobile-container {
+            max-width: 414px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+        }
+        
+        .hide {
+            display: none;
+        }
+        
+        .pdf-viewer {
+            background: linear-gradient(45deg, #f5f5f5, #e8e8e8);
+            border: 2px dashed #ccc;
+        }
+        
+        .folder-icon {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="bg-background text-foreground">
+    <div class="mobile-container">
+        <!-- @COMPONENT: Header -->
+        <header class="bg-primary text-primary-foreground p-4 sticky top-0 z-50 shadow-md">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="material-icons text-2xl">article</span>
+                    <h1 class="text-lg font-semibold">UPSC News Analyzer</h1>
+                </div>
+                <button id="adminBtn" class="p-2 rounded-full hover:bg-primary/80 transition-colors">
+                    <span class="material-icons">admin_panel_settings</span>
+                </button>
+            </div>
+        </header>
+        <!-- @END_COMPONENT: Header -->
+
+        <!-- @COMPONENT: MainUserInterface -->
+        <div id="userInterface" class="pb-20">
+            <!-- Today's Newspaper Section -->
+            <div class="p-4 bg-card border-b border-border">
+                <h2 class="text-xl font-semibold mb-4 text-foreground">Today's Newspaper</h2>
+                <div class="grid grid-cols-1 gap-3">
+                    <!-- @MAP: newspapers.map(newspaper => ( -->
+                    <div class="bg-card border border-border rounded-lg p-4 shadow-sm" data-mock="true">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-3">
+                                <span class="material-icons text-primary text-2xl">newspaper</span>
+                                <div>
+                                    <h3 class="font-medium text-foreground" data-bind="newspaper.name">The Indian Express</h3>
+                                    <p class="text-sm text-muted-foreground" data-bind="newspaper.date">December 19, 2024</p>
+                                </div>
+                            </div>
+                            <span class="bg-accent text-accent-foreground px-2 py-1 rounded-full text-xs font-medium">New</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="bg-primary text-primary-foreground py-3 px-4 rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors flex items-center justify-center space-x-2" data-event="click:viewFullNewspaper">
+                                <span class="material-icons text-lg">visibility</span>
+                                <span>View Full</span>
+                            </button>
+                            <button class="bg-secondary text-secondary-foreground py-3 px-4 rounded-lg font-medium text-sm hover:bg-secondary/90 transition-colors flex items-center justify-center space-x-2" data-event="click:viewSummary">
+                                <span class="material-icons text-lg">summarize</span>
+                                <span>Summary</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+
+            <!-- UPSC Subjects Section -->
+            <div class="p-4">
+                <h2 class="text-xl font-semibold mb-4 text-foreground">UPSC Subjects</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- @MAP: upscSubjects.map(subject => ( -->
+                    <div class="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer" data-event="click:openSubjectFolder" data-mock="true">
+                        <div class="flex flex-col items-center text-center space-y-2">
+                            <div class="folder-icon w-12 h-12 rounded-lg flex items-center justify-center shadow-sm">
+                                <span class="material-icons text-white text-2xl">folder</span>
+                            </div>
+                            <h3 class="font-medium text-sm text-foreground" data-bind="subject.name">Economy</h3>
+                            <p class="text-xs text-muted-foreground" data-bind="subject.count">12 articles</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer" data-mock="true">
+                        <div class="flex flex-col items-center text-center space-y-2">
+                            <div class="folder-icon w-12 h-12 rounded-lg flex items-center justify-center shadow-sm">
+                                <span class="material-icons text-white text-2xl">folder</span>
+                            </div>
+                            <h3 class="font-medium text-sm text-foreground">Politics</h3>
+                            <p class="text-xs text-muted-foreground">8 articles</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer" data-mock="true">
+                        <div class="flex flex-col items-center text-center space-y-2">
+                            <div class="folder-icon w-12 h-12 rounded-lg flex items-center justify-center shadow-sm">
+                                <span class="material-icons text-white text-2xl">folder</span>
+                            </div>
+                            <h3 class="font-medium text-sm text-foreground">International Relations</h3>
+                            <p class="text-xs text-muted-foreground">15 articles</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer" data-mock="true">
+                        <div class="flex flex-col items-center text-center space-y-2">
+                            <div class="folder-icon w-12 h-12 rounded-lg flex items-center justify-center shadow-sm">
+                                <span class="material-icons text-white text-2xl">folder</span>
+                            </div>
+                            <h3 class="font-medium text-sm text-foreground">Environment</h3>
+                            <p class="text-xs text-muted-foreground">6 articles</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer" data-mock="true">
+                        <div class="flex flex-col items-center text-center space-y-2">
+                            <div class="folder-icon w-12 h-12 rounded-lg flex items-center justify-center shadow-sm">
+                                <span class="material-icons text-white text-2xl">folder</span>
+                            </div>
+                            <h3 class="font-medium text-sm text-foreground">Science & Technology</h3>
+                            <p class="text-xs text-muted-foreground">10 articles</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer" data-mock="true">
+                        <div class="flex flex-col items-center text-center space-y-2">
+                            <div class="folder-icon w-12 h-12 rounded-lg flex items-center justify-center shadow-sm">
+                                <span class="material-icons text-white text-2xl">folder</span>
+                            </div>
+                            <h3 class="font-medium text-sm text-foreground">Social Issues</h3>
+                            <p class="text-xs text-muted-foreground">7 articles</p>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: MainUserInterface -->
+
+        <!-- @COMPONENT: SubjectFolderView -->
+        <div id="subjectFolder" class="hide pb-20">
+            <div class="p-4 bg-card border-b border-border">
+                <div class="flex items-center space-x-3 mb-4">
+                    <button id="backToMain" class="p-2 rounded-full hover:bg-muted transition-colors">
+                        <span class="material-icons">arrow_back</span>
+                    </button>
+                    <div>
+                        <h2 class="text-xl font-semibold text-foreground" data-bind="selectedSubject.name">Economy</h2>
+                        <p class="text-sm text-muted-foreground">Daily summaries organized by date</p>
+                    </div>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">search</span>
+                    <input type="text" placeholder="Search articles..." class="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+                </div>
+            </div>
+
+            <div class="p-4">
+                <!-- @MAP: dailySummaries.map(day => ( -->
+                <div class="mb-4" data-mock="true">
+                    <h3 class="font-semibold text-foreground mb-3 flex items-center space-x-2">
+                        <span class="material-icons text-primary">event</span>
+                        <span data-bind="day.date">December 19, 2024</span>
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="bg-card border border-border rounded-lg p-4 shadow-sm" data-bind="article" data-mock="true">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-medium text-sm text-foreground line-clamp-2">RBI's New Monetary Policy Impact on Trade Deficit</h4>
+                                <span class="bg-secondary text-secondary-foreground px-2 py-1 rounded-full text-xs font-medium ml-2 whitespace-nowrap">PDF</span>
+                            </div>
+                            <p class="text-xs text-muted-foreground mb-3 line-clamp-2">Summary of how the latest RBI monetary policy decisions are expected to influence India's trade balance and export competitiveness...</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-muted-foreground">2 pages • 5 min read</span>
+                                <button class="bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-medium hover:bg-primary/90 transition-colors flex items-center space-x-1" data-event="click:openPDF">
+                                    <span class="material-icons text-sm">open_in_new</span>
+                                    <span>Open</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-card border border-border rounded-lg p-4 shadow-sm" data-mock="true">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-medium text-sm text-foreground line-clamp-2">Digital Economy Growth and Employment Generation</h4>
+                                <span class="bg-secondary text-secondary-foreground px-2 py-1 rounded-full text-xs font-medium ml-2 whitespace-nowrap">PDF</span>
+                            </div>
+                            <p class="text-xs text-muted-foreground mb-3 line-clamp-2">Analysis of how India's digital economy expansion is creating new employment opportunities across various sectors...</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-muted-foreground">3 pages • 7 min read</span>
+                                <button class="bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-medium hover:bg-primary/90 transition-colors flex items-center space-x-1" data-event="click:openPDF">
+                                    <span class="material-icons text-sm">open_in_new</span>
+                                    <span>Open</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4" data-mock="true">
+                    <h3 class="font-semibold text-foreground mb-3 flex items-center space-x-2">
+                        <span class="material-icons text-primary">event</span>
+                        <span>December 18, 2024</span>
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="bg-card border border-border rounded-lg p-4 shadow-sm">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-medium text-sm text-foreground line-clamp-2">Infrastructure Investment and Economic Multiplier Effects</h4>
+                                <span class="bg-secondary text-secondary-foreground px-2 py-1 rounded-full text-xs font-medium ml-2 whitespace-nowrap">PDF</span>
+                            </div>
+                            <p class="text-xs text-muted-foreground mb-3 line-clamp-2">Comprehensive review of how infrastructure spending influences GDP growth and creates ripple effects across the economy...</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-muted-foreground">4 pages • 8 min read</span>
+                                <button class="bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-xs font-medium hover:bg-primary/90 transition-colors flex items-center space-x-1" data-event="click:openPDF">
+                                    <span class="material-icons text-sm">open_in_new</span>
+                                    <span>Open</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </div>
+        <!-- @END_COMPONENT: SubjectFolderView -->
+
+        <!-- @COMPONENT: PDFViewer -->
+        <div id="pdfViewer" class="hide">
+            <div class="p-4 bg-card border-b border-border">
+                <div class="flex items-center justify-between mb-4">
+                    <button id="backFromPDF" class="p-2 rounded-full hover:bg-muted transition-colors">
+                        <span class="material-icons">arrow_back</span>
+                    </button>
+                    <h2 class="text-lg font-semibold text-foreground flex-1 mx-3 line-clamp-1" data-bind="selectedArticle.title">RBI's New Monetary Policy Impact</h2>
+                    <button class="p-2 rounded-full hover:bg-muted transition-colors">
+                        <span class="material-icons">share</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="h-screen pdf-viewer m-4 rounded-lg flex items-center justify-center" data-implementation="Implement PDF.js or native PDF viewer">
+                <div class="text-center">
+                    <span class="material-icons text-6xl text-muted-foreground mb-4">picture_as_pdf</span>
+                    <p class="text-lg font-medium text-foreground mb-2">PDF Document</p>
+                    <p class="text-sm text-muted-foreground">RBI Monetary Policy Analysis</p>
+                    <button class="bg-primary text-primary-foreground px-6 py-3 rounded-lg mt-4 font-medium hover:bg-primary/90 transition-colors">
+                        Load PDF Content
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: PDFViewer -->
+
+        <!-- @COMPONENT: NewspaperViewer -->
+        <div id="newspaperViewer" class="hide">
+            <div class="p-4 bg-card border-b border-border">
+                <div class="flex items-center justify-between">
+                    <button id="backFromNewspaper" class="p-2 rounded-full hover:bg-muted transition-colors">
+                        <span class="material-icons">arrow_back</span>
+                    </button>
+                    <div class="flex-1 mx-3">
+                        <h2 class="text-lg font-semibold text-foreground">The Indian Express</h2>
+                        <p class="text-sm text-muted-foreground">December 19, 2024</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="p-2 rounded-full hover:bg-muted transition-colors">
+                            <span class="material-icons">zoom_in</span>
+                        </button>
+                        <button class="p-2 rounded-full hover:bg-muted transition-colors">
+                            <span class="material-icons">share</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-screen pdf-viewer m-4 rounded-lg flex items-center justify-center" data-implementation="Implement newspaper PDF viewer with zoom and navigation">
+                <div class="text-center">
+                    <span class="material-icons text-6xl text-muted-foreground mb-4">newspaper</span>
+                    <p class="text-lg font-medium text-foreground mb-2">Full Newspaper</p>
+                    <p class="text-sm text-muted-foreground mb-4">The Indian Express - Dec 19, 2024</p>
+                    <div class="space-y-2">
+                        <button class="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors block w-full">
+                            View Full Paper (PDF)
+                        </button>
+                        <button class="bg-secondary text-secondary-foreground px-6 py-3 rounded-lg font-medium hover:bg-secondary/90 transition-colors block w-full">
+                            View Summary Only
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: NewspaperViewer -->
+
+        <!-- @COMPONENT: AdminPanel -->
+        <div id="adminPanel" class="hide pb-20">
+            <div class="p-4 bg-card border-b border-border">
+                <div class="flex items-center space-x-3">
+                    <button id="backToMainFromAdmin" class="p-2 rounded-full hover:bg-muted transition-colors">
+                        <span class="material-icons">arrow_back</span>
+                    </button>
+                    <h2 class="text-xl font-semibold text-foreground">Admin Panel</h2>
+                </div>
+            </div>
+
+            <div class="p-4 space-y-6">
+                <!-- Upload Newspaper Section -->
+                <div class="bg-card border border-border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
+                        <span class="material-icons text-primary">upload_file</span>
+                        <span>Upload Newspaper</span>
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Newspaper Name</label>
+                            <select class="w-full p-3 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+                                <option>The Indian Express</option>
+                                <option>The Hindu</option>
+                                <option>Times of India</option>
+                                <option>Economic Times</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Date</label>
+                            <input type="date" class="w-full p-3 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring" data-mock="true">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Upload File</label>
+                            <div class="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer" data-implementation="Implement file upload dropzone">
+                                <span class="material-icons text-4xl text-muted-foreground mb-2">cloud_upload</span>
+                                <p class="text-sm text-muted-foreground">Click to upload or drag and drop</p>
+                                <p class="text-xs text-muted-foreground mt-1">PDF, JPG, PNG up to 50MB</p>
+                                <input type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" data-mock="true">
+                            </div>
+                        </div>
+                        
+                        <button class="w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors" data-event="click:uploadNewspaper">
+                            Upload Newspaper
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Process & Generate Summaries -->
+                <div class="bg-card border border-border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
+                        <span class="material-icons text-accent">auto_awesome</span>
+                        <span>AI Processing</span>
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <p class="text-sm text-muted-foreground">Automatically extract and categorize news into UPSC subjects</p>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="bg-accent text-accent-foreground py-3 px-4 rounded-lg font-medium text-sm hover:bg-accent/90 transition-colors flex items-center justify-center space-x-2" data-event="click:processNewspaper">
+                                <span class="material-icons text-lg">psychology</span>
+                                <span>Process Latest</span>
+                            </button>
+                            <button class="bg-secondary text-secondary-foreground py-3 px-4 rounded-lg font-medium text-sm hover:bg-secondary/90 transition-colors flex items-center justify-center space-x-2" data-event="click:viewProcessingStatus">
+                                <span class="material-icons text-lg">trending_up</span>
+                                <span>View Status</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Uploads -->
+                <div class="bg-card border border-border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-foreground mb-4">Recent Uploads</h3>
+                    
+                    <div class="space-y-3">
+                        <!-- @MAP: recentUploads.map(upload => ( -->
+                        <div class="flex items-center justify-between p-3 bg-muted rounded-lg" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <span class="material-icons text-primary">newspaper</span>
+                                <div>
+                                    <p class="font-medium text-sm text-foreground" data-bind="upload.name">The Indian Express</p>
+                                    <p class="text-xs text-muted-foreground" data-bind="upload.date">Dec 19, 2024</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="bg-accent text-accent-foreground px-2 py-1 rounded-full text-xs font-medium" data-bind="upload.status">Processed</span>
+                                <button class="p-1 rounded hover:bg-background transition-colors">
+                                    <span class="material-icons text-sm">more_vert</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-muted rounded-lg" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <span class="material-icons text-primary">newspaper</span>
+                                <div>
+                                    <p class="font-medium text-sm text-foreground">The Hindu</p>
+                                    <p class="text-xs text-muted-foreground">Dec 18, 2024</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-medium">Processing</span>
+                                <button class="p-1 rounded hover:bg-background transition-colors">
+                                    <span class="material-icons text-sm">more_vert</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: AdminPanel -->
+
+        <!-- @COMPONENT: BottomNavigation -->
+        <nav class="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-[414px] bg-card border-t border-border">
+            <div class="flex items-center justify-around py-2">
+                <button id="navHome" class="nav-item active flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors">
+                    <span class="material-icons text-primary">home</span>
+                    <span class="text-xs font-medium text-primary">Home</span>
+                </button>
+                <button id="navSearch" class="nav-item flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors hover:bg-muted">
+                    <span class="material-icons text-muted-foreground">search</span>
+                    <span class="text-xs text-muted-foreground">Search</span>
+                </button>
+                <button id="navBookmarks" class="nav-item flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors hover:bg-muted">
+                    <span class="material-icons text-muted-foreground">bookmark</span>
+                    <span class="text-xs text-muted-foreground">Saved</span>
+                </button>
+                <button id="navProfile" class="nav-item flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors hover:bg-muted">
+                    <span class="material-icons text-muted-foreground">person</span>
+                    <span class="text-xs text-muted-foreground">Profile</span>
+                </button>
+            </div>
+        </nav>
+        <!-- @END_COMPONENT: BottomNavigation -->
+    </div>
+
+    <script>
+        // @STATE: currentView:string = 'main'
+        // @STATE: selectedSubject:object = null
+        
+        (function() {
+            // Navigation functionality
+            const views = {
+                main: document.getElementById('userInterface'),
+                admin: document.getElementById('adminPanel'),
+                subject: document.getElementById('subjectFolder'),
+                pdf: document.getElementById('pdfViewer'),
+                newspaper: document.getElementById('newspaperViewer')
+            };
+            
+            let currentView = 'main';
+            
+            function showView(viewName) {
+                // Hide all views
+                Object.values(views).forEach(view => view.classList.add('hide'));
+                
+                // Show selected view
+                if (views[viewName]) {
+                    views[viewName].classList.remove('hide');
+                    currentView = viewName;
+                }
+            }
+            
+            // Admin panel navigation
+            document.getElementById('adminBtn').addEventListener('click', () => {
+                showView('admin');
+            });
+            
+            document.getElementById('backToMainFromAdmin').addEventListener('click', () => {
+                showView('main');
+            });
+            
+            // Subject folder navigation
+            document.querySelectorAll('[data-event="click:openSubjectFolder"]').forEach(folder => {
+                folder.addEventListener('click', () => {
+                    showView('subject');
+                });
+            });
+            
+            document.getElementById('backToMain').addEventListener('click', () => {
+                showView('main');
+            });
+            
+            // PDF viewer navigation
+            document.querySelectorAll('[data-event="click:openPDF"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    showView('pdf');
+                });
+            });
+            
+            document.getElementById('backFromPDF').addEventListener('click', () => {
+                showView('subject');
+            });
+            
+            // Newspaper viewer navigation
+            document.querySelectorAll('[data-event="click:viewFullNewspaper"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    showView('newspaper');
+                });
+            });
+            
+            document.querySelectorAll('[data-event="click:viewSummary"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    showView('newspaper');
+                });
+            });
+            
+            document.getElementById('backFromNewspaper').addEventListener('click', () => {
+                showView('main');
+            });
+            
+            // Bottom navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove active class from all nav items
+                    document.querySelectorAll('.nav-item').forEach(nav => {
+                        nav.classList.remove('active');
+                        nav.querySelector('.material-icons').classList.remove('text-primary');
+                        nav.querySelector('.material-icons').classList.add('text-muted-foreground');
+                        nav.querySelector('span:last-child').classList.remove('text-primary');
+                        nav.querySelector('span:last-child').classList.add('text-muted-foreground');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    this.querySelector('.material-icons').classList.add('text-primary');
+                    this.querySelector('.material-icons').classList.remove('text-muted-foreground');
+                    this.querySelector('span:last-child').classList.add('text-primary');
+                    this.querySelector('span:last-child').classList.remove('text-muted-foreground');
+                    
+                    // Navigate to home when home is clicked
+                    if (this.id === 'navHome') {
+                        showView('main');
+                    }
+                });
+            });
+            
+            // TODO: Implement file upload functionality
+            // TODO: Implement PDF processing and AI categorization
+            // TODO: Implement search functionality
+            // TODO: Implement bookmarking system
+            // TODO: Implement user authentication and profiles
+            // TODO: Implement real-time updates and notifications
+            
+        })();
+    </script>
+</body>
+</html>
