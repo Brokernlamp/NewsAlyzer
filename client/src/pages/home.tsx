@@ -146,20 +146,22 @@ export default function Home() {
             {subjects.map((subject) => (
               <Link key={subject.id} href={`/subject/${subject.id}`}>
                 <Card 
-                  className="shadow-sm hover:shadow-md transition-all cursor-pointer"
+                  className="subject-card shadow-sm hover:shadow-md cursor-pointer fade-in"
                   data-testid={`card-subject-${subject.slug}`}
                 >
                   <CardContent className="p-4">
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      <div className="folder-icon w-12 h-12 rounded-lg flex items-center justify-center shadow-sm">
-                        <span className="material-icons text-white text-2xl">folder</span>
+                    <div className="flex flex-col items-center text-center space-y-3">
+                      <div className="folder-icon w-14 h-14 rounded-xl flex items-center justify-center shadow-lg">
+                        <span className="material-icons text-white text-3xl">folder</span>
                       </div>
-                      <h3 className="font-medium text-sm text-foreground" data-testid={`text-subject-name-${subject.id}`}>
-                        {subject.name}
-                      </h3>
-                      <p className="text-xs text-muted-foreground" data-testid={`text-subject-count-${subject.id}`}>
-                        {subject.articleCount} articles
-                      </p>
+                      <div>
+                        <h3 className="font-semibold text-sm text-foreground mb-1" data-testid={`text-subject-name-${subject.id}`}>
+                          {subject.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground" data-testid={`text-subject-count-${subject.id}`}>
+                          {subject.articleCount} articles
+                        </p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
