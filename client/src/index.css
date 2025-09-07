@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(210, 20%, 98%);
+  --foreground: hsl(224, 71%, 4%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(224, 71%, 4%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(224, 71%, 4%);
+  --primary: hsl(207, 90%, 35%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(200, 95%, 60%);
+  --secondary-foreground: hsl(224, 71%, 4%);
+  --muted: hsl(220, 14%, 96%);
+  --muted-foreground: hsl(220, 8%, 46%);
+  --accent: hsl(142, 76%, 36%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(356.3, 90.6%, 54.3%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(220, 13%, 91%);
+  --input: hsl(220, 13%, 91%);
+  --ring: hsl(207, 90%, 35%);
+  --chart-1: hsl(207, 90%, 35%);
+  --chart-2: hsl(142, 76%, 36%);
+  --chart-3: hsl(200, 95%, 60%);
+  --chart-4: hsl(220, 8%, 46%);
+  --chart-5: hsl(356.3, 90.6%, 54.3%);
+  --sidebar: hsl(0, 0%, 100%);
+  --sidebar-foreground: hsl(224, 71%, 4%);
+  --sidebar-primary: hsl(207, 90%, 35%);
+  --sidebar-primary-foreground: hsl(0, 0%, 98%);
+  --sidebar-accent: hsl(220, 14%, 96%);
+  --sidebar-accent-foreground: hsl(207, 90%, 35%);
+  --sidebar-border: hsl(220, 13%, 91%);
+  --sidebar-ring: hsl(207, 90%, 35%);
+  --font-sans: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 8px;
+  --shadow-2xs: 0px 2px 0px 0px hsl(207, 90%, 35% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(207, 90%, 35% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(207, 90%, 35% / 0.00), 0px 1px 2px -1px hsl(207, 90%, 35% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(207, 90%, 35% / 0.00), 0px 1px 2px -1px hsl(207, 90%, 35% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(207, 90%, 35% / 0.00), 0px 2px 4px -1px hsl(207, 90%, 35% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(207, 90%, 35% / 0.00), 0px 4px 6px -1px hsl(207, 90%, 35% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(207, 90%, 35% / 0.00), 0px 8px 10px -1px hsl(207, 90%, 35% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(207, 90%, 35% / 0.00);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+.dark {
+  --background: hsl(0, 0%, 0%);
+  --foreground: hsl(200, 6.7%, 91.2%);
+  --card: hsl(228, 9.8%, 10%);
+  --card-foreground: hsl(0, 0%, 85.1%);
+  --popover: hsl(0, 0%, 0%);
+  --popover-foreground: hsl(200, 6.7%, 91.2%);
+  --primary: hsl(207, 90%, 35%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(195, 15.4%, 94.9%);
+  --secondary-foreground: hsl(224, 71%, 4%);
+  --muted: hsl(0, 0%, 9.4%);
+  --muted-foreground: hsl(210, 3.4%, 46.3%);
+  --accent: hsl(142, 76%, 36%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(356.3, 90.6%, 54.3%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(210, 5.3%, 14.9%);
+  --input: hsl(208, 27.7%, 18.4%);
+  --ring: hsl(207, 90%, 35%);
+  --chart-1: hsl(207, 90%, 35%);
+  --chart-2: hsl(142, 76%, 36%);
+  --chart-3: hsl(200, 95%, 60%);
+  --chart-4: hsl(220, 8%, 46%);
+  --chart-5: hsl(356.3, 90.6%, 54.3%);
+  --sidebar: hsl(228, 9.8%, 10%);
+  --sidebar-foreground: hsl(0, 0%, 85.1%);
+  --sidebar-primary: hsl(207, 90%, 35%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(205.7, 70%, 7.8%);
+  --sidebar-accent-foreground: hsl(207, 90%, 35%);
+  --sidebar-border: hsl(205.7, 15.8%, 26.1%);
+  --sidebar-ring: hsl(207, 90%, 35%);
+  --font-sans: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+@layer utilities {
+  .mobile-container {
+    max-width: 414px;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+  }
+  
+  .pdf-viewer {
+    background: linear-gradient(45deg, #f5f5f5, #e8e8e8);
+    border: 2px dashed #ccc;
+  }
+  
+  .folder-icon {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+  }
+
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
+}
