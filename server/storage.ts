@@ -64,6 +64,7 @@ export class MemStorage implements IStorage {
     const newspaper: Newspaper = {
       ...insertNewspaper,
       id,
+      status: insertNewspaper.status || "uploaded",
       createdAt: new Date(),
     };
     this.newspapers.set(id, newspaper);
@@ -105,6 +106,8 @@ export class MemStorage implements IStorage {
     const subject: UpscSubject = {
       ...insertSubject,
       id,
+      description: insertSubject.description || null,
+      articleCount: insertSubject.articleCount || 0,
     };
     this.upscSubjects.set(id, subject);
     return subject;
@@ -123,6 +126,9 @@ export class MemStorage implements IStorage {
     const article: Article = {
       ...insertArticle,
       id,
+      pdfPath: insertArticle.pdfPath || null,
+      pageCount: insertArticle.pageCount || 1,
+      readTime: insertArticle.readTime || 5,
       createdAt: new Date(),
     };
     this.articles.set(id, article);
