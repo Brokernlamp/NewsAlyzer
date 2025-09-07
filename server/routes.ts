@@ -215,12 +215,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Telegram Bot API integration
   const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
   const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID; // numeric chat id (negative for channels)
+  const TELEGRAM_ENABLED = Boolean(BOT_TOKEN && CHANNEL_ID);
 
   // Upload a document to Telegram channel via Bot API and return file_id
   app.post("/api/tg/upload", upload.single('file'), async (req: Request, res: Response) => {
     try {
-      if (!BOT_TOKEN || !CHANNEL_ID) {
-        return res.status(500).json({ message: "Telegram is not configured (set TELEGRAM_BOT_TOKEN and TELEGRAM_CHANNEL_ID)" });
+      if (!TELEGRAM_ENABLED) {
+        return res.status(400).json({ message: "Telegram disabled. Use /api/newspapers for local upload." });
       }
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });

@@ -28,25 +28,35 @@ export default function Admin() {
 
   const uploadMutation = useMutation({
     mutationFn: async (data: { file: File; name: string; date: string }) => {
-      // 1) Upload to Telegram to obtain file_id
-      const tgForm = new FormData();
-      tgForm.append('file', data.file);
-      const tgRes = await fetch('/api/tg/upload', { method: 'POST', body: tgForm as any, credentials: 'include' });
-      if (!tgRes.ok) throw new Error(await tgRes.text());
-      const tgJson = await tgRes.json();
+      // Try Telegram first; if disabled, fallback to local upload
+      try {
+        const tgForm = new FormData();
+        tgForm.append('file', data.file);
+        const tgRes = await fetch('/api/tg/upload', { method: 'POST', body: tgForm as any, credentials: 'include' });
+        if (tgRes.ok) {
+          const tgJson = await tgRes.json();
+          const payload = {
+            name: data.name,
+            date: data.date,
+            filePath: `tg:${tgJson.file_id}`,
+            originalFileName: tgJson.original || data.file.name,
+            fileSize: tgJson.size || data.file.size,
+            mimeType: tgJson.mimeType || data.file.type,
+            status: 'uploaded',
+          };
+          const response = await apiRequest("POST", "/api/newspapers/json", payload);
+          return response.json();
+        }
+        // If Telegram responds with 4xx indicating disabled, fall through to local
+      } catch (_) {}
 
-      // 2) Create newspaper record pointing to Telegram file_id
-      const payload = {
-        name: data.name,
-        date: data.date,
-        filePath: `tg:${tgJson.file_id}`,
-        originalFileName: tgJson.original || data.file.name,
-        fileSize: tgJson.size || data.file.size,
-        mimeType: tgJson.mimeType || data.file.type,
-        status: 'uploaded',
-      };
-      const response = await apiRequest("POST", "/api/newspapers/json", payload);
-      return response.json();
+      const form = new FormData();
+      form.append('file', data.file);
+      form.append('name', data.name);
+      form.append('date', data.date);
+      const res = await fetch('/api/newspapers', { method: 'POST', body: form as any, credentials: 'include' });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
     },
     onSuccess: () => {
       toast({
